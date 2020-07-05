@@ -85,7 +85,7 @@ def main():
     bowls = int(net_change / item_cost)
     bowls_str =  "{:,}".format(bowls)
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} {tweet_text_from_db}."
-    # print(tweet_text)
+    twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
     # pass
 
