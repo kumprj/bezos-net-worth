@@ -69,24 +69,23 @@ def main():
 
     #print(f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} chicken burritos.")
     recently_used = True
+
     while recently_used:
         tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
         today = datetime.datetime.now().date()
         three_months = datetime.timedelta(3*365/12)
         three_months_ago = today - three_months
-        print(three_months_ago)
-        print(last_use)
+
         if three_months_ago < last_use:
             continue
         else:
             recently_used = False
             break
 
-    # item_cost = db_results[1]
     bowls = int(net_change / item_cost)
     bowls_str =  "{:,}".format(bowls)
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} {tweet_text_from_db}."
-    print(tweet_text)
+    # print(tweet_text)
     update_db_date(num_id, str_id, last_use)
     # pass
 
@@ -118,46 +117,3 @@ def update_db_date(num_id, str_id, last_use):
 
 if __name__ == "__main__":
     main()
-
-
-
-        # connection = psycopg2.connect(user = database_user,
-        #                         password = database_password,
-        #                         host = database_host,
-        #                         port = database_port,
-        #                         database = database_db)
-
-        # current_test_data = (currentTestSymbol, currentTestIndicator, currentTestLookbackPeriod, currentTestObservationPeriod, currentTestIndexFilter,
-        #                 currentTestIndicatorSmoothing, currentTestStartdate, currentTestEndDate, currentTestOverlapping, currentTestIndexFilterSwap, currentTestIndicatorLevel,
-        #                 currentTestMarketEnvironment, currentTestIndexMASlope, currentTotalReturn, currentAvgReturn, currentZSCore, currentBuyHoldReturn, currentWinRatePercent,
-        #                 currentAvgWin, currentAvgLoss, currentMaxRisk, currentTotalTrades, currentTotalPositive, currentTotalNegative, 
-        #                 currentTimeInMarket, todaysDate, currentTotalReturn, currentAvgReturn, currentZSCore, currentBuyHoldReturn, currentWinRatePercent, currentAvgWin,
-        #                 currentAvgLoss, currentMaxRisk, currentTotalTrades, currentTotalPositive, currentTotalNegative, currentTimeInMarket, currentMedReturn, currentStdDev)
-        # sql_insert = '''insert into "backtest_results_10ma" (symbol, indicator, lookback_period, observation_period, index_filter, indicator_smoothing, 
-        #                 test_start_date, test_end_date, exclude_overlapping, index_filter_swap, indicator_level, market_environment, 
-        #                 index_ma_slope, total_return, avg_return, z_score, buy_hold_return, win_rate, avg_win,
-        #                 avg_loss, max_risk, total_trades, total_pos, total_neg, time_in_mkt, todays_date)                    
-        #                 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        #                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        #                 ON CONFLICT (indicator, observation_period, todays_date)
-        #                 DO UPDATE SET total_return = %s,
-        #                 avg_return = %s,
-        #                 z_score = %s,
-        #                 buy_hold_return = %s,
-        #                 win_rate = %s,
-        #                 avg_win = %s,
-        #                 avg_loss = %s,
-        #                 max_risk = %s,
-        #                 total_trades = %s,
-        #                 total_pos = %s,
-        #                 total_neg = %s,
-        #                 time_in_mkt = %s,
-        #                 median_return = %s,
-        #                 std_dev = %s;
-        #                 '''
-        # cursor = connection.cursor()
-        # cursor.execute(sql_insert, current_test_data)
-        # connection.commit()
-        # cursor.close()
-        # connection.close()
-        # print('Backtest Table updated for %s for period %s' % (currentTestIndicator, currentTestObservationPeriod))
