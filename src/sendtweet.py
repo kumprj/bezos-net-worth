@@ -34,26 +34,13 @@ def rds_connect():
                             port = database_port,
                             database = database_db)
 
-
-# connection = rds_connect()
-# cursor = connection.cursor()
-# select_query = f'select endtime from public.customcandle_lasttime where type = \'{type_of_candle}\' and etf = \'{etf}\''
-# cursor.execute(select_query)
-# stored_time = cursor.fetchone() # Fetch the end time value from our table if it exists. Point of restart for the script. Only ever one element here.
-# cursor.close()
-# connection.close()
-
 def main():
-    # message = "Hello world!"
-    # twitter.update_status(status=message)
-    # print("Tweeted: %s" % message)
 
     resp = requests.get(apiUrl)
     amzn_json = resp.json()
     closing_price = amzn_json['AMZN']['closePrice']
     net_worth = int(closing_price * int(share_count))
     net_worth_str = "{:,}".format(net_worth)
-    # print("$" + net_worth)
 
     prev_day_resp = requests.get(apiUrl2)
     prev_day_json = prev_day_resp.json()
@@ -66,8 +53,6 @@ def main():
 
     up_down = 'down' if (prev_day_close > closing_price) else 'up'
     gain_loss = 'loss' if (prev_day_close > closing_price) else 'gain'
-
-    #print(f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} chicken burritos.")
     recently_used = True
 
     while recently_used:
@@ -87,7 +72,6 @@ def main():
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} {tweet_text_from_db}."
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
-    # pass
 
 
 def select_tweet():
