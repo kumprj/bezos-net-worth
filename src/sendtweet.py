@@ -66,9 +66,9 @@ def main():
             recently_used = False
             break
 
-    bowls = int(net_change / item_cost)
-    bowls_str =  "{:,}".format(bowls)
-    tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a change of ${net_change_str} and a {gain_loss} of {bowls_str} {tweet_text_from_db}."
+    amount = int(net_change / item_cost)
+    amount_str =  "{:,}".format(amount)
+    tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday (share price {prev_day_close} -> {closing_price}). This is a change of ${net_change_str} and a {gain_loss} of {amount_str} {tweet_text_from_db}."
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
 
