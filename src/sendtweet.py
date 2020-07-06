@@ -35,7 +35,6 @@ def rds_connect():
                             database = database_db)
 
 def main():
-
     resp = requests.get(apiUrl)
     amzn_json = resp.json()
     closing_price = amzn_json['AMZN']['closePrice']
