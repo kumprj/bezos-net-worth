@@ -70,10 +70,8 @@ def main():
 
     amount = int(net_change / item_cost)
     amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
-    # amount_str =  "{:,}".format(amount)
 
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str}B, {up_down} from ${prev_worth_str}B yesterday. This is a change of ${net_change_str} and a {gain_loss} of {amount_str} {tweet_text_from_db}."
-    print(tweet_text)
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
 
@@ -81,8 +79,7 @@ def main():
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,55)
-    # id = 0
+    id = random.randint(0,55) # Revise to global var
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone() # Fetch the end time value from our table if it exists. Point of restart for the script. Only ever one element here.
