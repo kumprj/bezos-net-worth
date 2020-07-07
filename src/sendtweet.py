@@ -40,12 +40,14 @@ def main():
     closing_price = amzn_json['AMZN']['lastPrice']
     net_worth = int(closing_price * int(share_count))
     net_worth_str = "{:,}".format(net_worth)
+    net_worth_str = net_worth_str[0:3]
 
     prev_day_resp = requests.get(apiUrl2)
     prev_day_json = prev_day_resp.json()
     prev_day_close = prev_day_json['candles'][-1]['close']
     prev_worth = int(prev_day_close * int(share_count))
     prev_worth_str = "{:,}".format(prev_worth)
+    prev_worth_str = prev_worth_str[0:3]
 
     net_change = abs(prev_worth - net_worth)
     net_change_str = "{:,}".format(net_change)
@@ -67,8 +69,11 @@ def main():
             break
 
     amount = int(net_change / item_cost)
-    amount_str =  "{:,}".format(amount)
-    tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str}, {up_down} from ${prev_worth_str} yesterday. This is a change of ${net_change_str} and a {gain_loss} of {amount_str} {tweet_text_from_db}."
+    amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
+    # amount_str =  "{:,}".format(amount)
+
+    tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str}B, {up_down} from ${prev_worth_str}B yesterday. This is a change of ${net_change_str} and a {gain_loss} of {amount_str} {tweet_text_from_db}."
+    print(tweet_text)
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
 
@@ -76,8 +81,8 @@ def main():
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    # id = random.randint(0,5)
-    id = 0
+    id = random.randint(0,55)
+    # id = 0
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone() # Fetch the end time value from our table if it exists. Point of restart for the script. Only ever one element here.
