@@ -94,7 +94,6 @@ def update_db_date(num_id, str_id, last_use):
     today = datetime.datetime.now().date()
     insert_query = f'''insert into public.bezostweets (num_id, str_id, last_use) values ({num_id}, '{str_id}', '{last_use}')
                         ON CONFLICT (num_id, str_id) DO UPDATE SET last_use = '{today}';'''
-   
     cursor.execute(insert_query)
     connection.commit()
     cursor.close()
