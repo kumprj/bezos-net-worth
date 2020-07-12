@@ -80,10 +80,10 @@ def main():
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,55) # Revise to global var
+    id = random.randint(0,128) # Revise to global var
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
-    db_results = cursor.fetchone() # Fetch the end time value from our table if it exists. Point of restart for the script. Only ever one element here.
+    db_results = cursor.fetchone()
     cursor.close()
     connection.close()
     return db_results[0], db_results[1], db_results[2], db_results[3], db_results[4]
