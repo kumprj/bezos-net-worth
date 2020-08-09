@@ -91,6 +91,7 @@ def main():
     print(tweet_text)
     print(closing_price)
     print(prev_day_close)
+    print(share_count)
 
 
 def select_tweet():
