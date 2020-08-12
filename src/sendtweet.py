@@ -97,7 +97,7 @@ def main():
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,143) # Revise to global var
+    id = random.randint(0,151) # Inclusive. Revise to global var
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone()
