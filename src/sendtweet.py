@@ -68,9 +68,7 @@ def main():
     up_down = 'down' if (prev_day_close > closing_price) else 'up'
     gain_loss = 'loss' if (prev_day_close > closing_price) else 'gain'
     recently_used = True
-    counter = get_content_count() - 1
-    print(counter)
-    recently_used = False
+
     while recently_used:
         tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
         today = datetime.datetime.now().date()
@@ -87,9 +85,10 @@ def main():
     amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
 
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    # twitter.update_status(status=tweet_text)
-    # update_db_date(num_id, str_id, last_use)
-    # Print statements for logging purposes.
+    twitter.update_status(status=tweet_text)
+    update_db_date(num_id, str_id, last_use)
+    
+    # Print statements for CloudWatch logs.
     print(tweet_text)
     print(closing_price)
     print(prev_day_close)
@@ -99,7 +98,6 @@ def main():
 def get_content_count():
     connection = rds_connect()
     cursor = connection.cursor()
-    count = get_content_count() - 1
     select_query = f'select COUNT(num_id) from public.bezostweets'
     cursor.execute(select_query)
     db_results = cursor.fetchone()
@@ -110,7 +108,8 @@ def get_content_count():
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,151) # Inclusive. Revise to global var
+    count = get_content_count() - 1 # Set upper bound based on db column size.
+    id = random.randint(0, count) # Inclusive
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone()
