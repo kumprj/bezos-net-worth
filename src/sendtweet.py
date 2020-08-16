@@ -97,7 +97,6 @@ def main():
     update_db_date(num_id, str_id, last_use)
     
     # Print statements for CloudWatch logs.
-    print(tweet_text)
     print(closing_price)
     print(prev_day_close)
     print(share_count)
