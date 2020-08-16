@@ -5,31 +5,31 @@ import random
 import psycopg2
 import datetime
 from dateutil.relativedelta import relativedelta
-# from settings import (
-#     consumer_key,
-#     consumer_secret,
-#     access_token,
-#     access_token_secret,
-#     td_key,
-#     database_user,
-#     database_password,
-#     database_host,
-#     database_port,
-#     database_db,
-#     share_count
-# )
+from settings import (
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_token_secret,
+    td_key,
+    database_user,
+    database_password,
+    database_host,
+    database_port,
+    database_db,
+    share_count
+)
 
-access_token = os.environ['access_token']
-access_token_secret = os.environ['access_token_secret']
-consumer_key = os.environ['consumer_key']
-consumer_secret = os.environ['consumer_secret']
-database_db = os.environ['database_db']
-database_host = os.environ['database_host']
-database_password = os.environ['database_password']
-database_port = os.environ['database_port']
-database_user = os.environ['database_user']
-share_count = os.environ['share_count']
-td_key = os.environ['td_key']
+# access_token = os.environ['access_token']
+# access_token_secret = os.environ['access_token_secret']
+# consumer_key = os.environ['consumer_key']
+# consumer_secret = os.environ['consumer_secret']
+# database_db = os.environ['database_db']
+# database_host = os.environ['database_host']
+# database_password = os.environ['database_password']
+# database_port = os.environ['database_port']
+# database_user = os.environ['database_user']
+# share_count = os.environ['share_count']
+# td_key = os.environ['td_key']
 
 twitter = Twython(
     consumer_key,
@@ -87,17 +87,29 @@ def main():
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
-    # Print statements for logging purposes.
+    
+    # Print statements for CloudWatch logs.
     print(tweet_text)
     print(closing_price)
     print(prev_day_close)
     print(share_count)
 
 
+def get_content_count():
+    connection = rds_connect()
+    cursor = connection.cursor()
+    select_query = f'select COUNT(num_id) from public.bezostweets'
+    cursor.execute(select_query)
+    db_results = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return db_results[0]
+
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,151) # Inclusive. Revise to global var
+    count = get_content_count() - 1 # Set upper bound based on db column size.
+    id = random.randint(0, count) # Inclusive
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone()
