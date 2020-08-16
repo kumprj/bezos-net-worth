@@ -5,31 +5,31 @@ import random
 import psycopg2
 import datetime
 from dateutil.relativedelta import relativedelta
-from settings import (
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret,
-    td_key,
-    database_user,
-    database_password,
-    database_host,
-    database_port,
-    database_db,
-    share_count
-)
+# from settings import (
+#     consumer_key,
+#     consumer_secret,
+#     access_token,
+#     access_token_secret,
+#     td_key,
+#     database_user,
+#     database_password,
+#     database_host,
+#     database_port,
+#     database_db,
+#     share_count
+# )
 
-# access_token = os.environ['access_token']
-# access_token_secret = os.environ['access_token_secret']
-# consumer_key = os.environ['consumer_key']
-# consumer_secret = os.environ['consumer_secret']
-# database_db = os.environ['database_db']
-# database_host = os.environ['database_host']
-# database_password = os.environ['database_password']
-# database_port = os.environ['database_port']
-# database_user = os.environ['database_user']
-# share_count = os.environ['share_count']
-# td_key = os.environ['td_key']
+access_token = os.environ['access_token']
+access_token_secret = os.environ['access_token_secret']
+consumer_key = os.environ['consumer_key']
+consumer_secret = os.environ['consumer_secret']
+database_db = os.environ['database_db']
+database_host = os.environ['database_host']
+database_password = os.environ['database_password']
+database_port = os.environ['database_port']
+database_user = os.environ['database_user']
+share_count = os.environ['share_count']
+td_key = os.environ['td_key']
 
 twitter = Twython(
     consumer_key,
