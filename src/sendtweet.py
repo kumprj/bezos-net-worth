@@ -37,8 +37,8 @@ twitter = Twython(
     access_token,
     access_token_secret
 )
-apiUrl = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
-apiUrl2 = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
+todays_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
+prev_day_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
 
 def rds_connect():
     return psycopg2.connect(user = database_user,
@@ -48,27 +48,33 @@ def rds_connect():
                             database = database_db)
 
 def main():
-    resp = requests.get(apiUrl)
+    # Get today's price as JSON and format it. Grab first 3 chars since we're working with billions.
+    resp = requests.get(todays_price_api_url)
     amzn_json = resp.json()
     closing_price = amzn_json['AMZN']['lastPrice']
     net_worth = int(closing_price * int(share_count))
     net_worth_str = "{:,}".format(net_worth)
     net_worth_str = net_worth_str[0:3]
 
-    prev_day_resp = requests.get(apiUrl2)
+    # Get yesterday's price as JSON and format it. Grab first 3 chars since we're working with billions.
+    prev_day_resp = requests.get(prev_day_api_url)
     prev_day_json = prev_day_resp.json()
     prev_day_close = prev_day_json['candles'][-1]['close']
     prev_worth = int(prev_day_close * int(share_count))
     prev_worth_str = "{:,}".format(prev_worth)
     prev_worth_str = prev_worth_str[0:3]
 
+    # Format net worth with commas. 
     net_change = abs(prev_worth - net_worth)
     net_change_str = "{:,}".format(net_change)
 
+    # Calculate if they are unrealized gains or losses.
     up_down = 'down' if (prev_day_close > closing_price) else 'up'
     gain_loss = 'loss' if (prev_day_close > closing_price) else 'gain'
     recently_used = True
 
+    # Loop through our database options to identify some text for today's tweet. Ensure it hasn't 
+    # been used in the last 3 months.
     while recently_used:
         tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
         today = datetime.datetime.now().date()
@@ -81,15 +87,16 @@ def main():
             recently_used = False
             break
 
+    # Calculate the amount of everyday items, adding commas to nicely format it.
     amount = int(net_change / item_cost)
     amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
 
+    # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
     twitter.update_status(status=tweet_text)
     update_db_date(num_id, str_id, last_use)
     
     # Print statements for CloudWatch logs.
-    print(tweet_text)
     print(closing_price)
     print(prev_day_close)
     print(share_count)
