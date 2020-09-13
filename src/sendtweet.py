@@ -5,31 +5,35 @@ import random
 import psycopg2
 import datetime
 from dateutil.relativedelta import relativedelta
-# from settings import (
-#     consumer_key,
-#     consumer_secret,
-#     access_token,
-#     access_token_secret,
-#     td_key,
-#     database_user,
-#     database_password,
-#     database_host,
-#     database_port,
-#     database_db,
-#     share_count
-# )
+from settings import (
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_token_secret,
+    td_key,
+    database_user,
+    database_password,
+    database_host,
+    database_port,
+    database_db,
+    share_count,
+    client_id,
+    refresh_token
+)
 
-access_token = os.environ['access_token']
-access_token_secret = os.environ['access_token_secret']
-consumer_key = os.environ['consumer_key']
-consumer_secret = os.environ['consumer_secret']
-database_db = os.environ['database_db']
-database_host = os.environ['database_host']
-database_password = os.environ['database_password']
-database_port = os.environ['database_port']
-database_user = os.environ['database_user']
-share_count = os.environ['share_count']
-td_key = os.environ['td_key']
+# access_token = os.environ['access_token']
+# access_token_secret = os.environ['access_token_secret']
+# consumer_key = os.environ['consumer_key']
+# consumer_secret = os.environ['consumer_secret']
+# database_db = os.environ['database_db']
+# database_host = os.environ['database_host']
+# database_password = os.environ['database_password']
+# database_port = os.environ['database_port']
+# database_user = os.environ['database_user']
+# share_count = os.environ['share_count']
+# td_key = os.environ['td_key']
+# refresh_token = os.environ['refresh_token']
+# client_id = os.environ['client_id']
 
 twitter = Twython(
     consumer_key,
@@ -37,8 +41,8 @@ twitter = Twython(
     access_token,
     access_token_secret
 )
-apiUrl = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
-apiUrl2 = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
+current_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
+yesterday_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
 
 def rds_connect():
     return psycopg2.connect(user = database_user,
@@ -47,16 +51,30 @@ def rds_connect():
                             port = database_port,
                             database = database_db)
 
+def get_token():
+    token_url = "https://api.tdameritrade.com/v1/oauth2/token"
+    headers = {"Content-Type" : "application/x-www-form-urlencoded"}
+    data = f"grant_type=refresh_token&refresh_token={refresh_token}&access_type=&code=&client_id={client_id}&redirect_uri="
+    token = requests.post(token_url, headers=headers, data=data)
+    output = token.json()
+    return output["access_token"]
 def main():
-    resp = requests.get(apiUrl)
+    
+    token = get_token()
+    headers = {}
+    headers["Authorization"] = f"Bearer {token}"
+    print(headers)
+    resp = requests.get(current_price_api_url, headers=headers)
     amzn_json = resp.json()
-    closing_price = amzn_json['AMZN']['lastPrice']
+
+    closing_price = amzn_json['AMZN']['closePrice']
     net_worth = int(closing_price * int(share_count))
     net_worth_str = "{:,}".format(net_worth)
     net_worth_str = net_worth_str[0:3]
 
-    prev_day_resp = requests.get(apiUrl2)
+    prev_day_resp = requests.get(yesterday_price_api_url, headers=headers)
     prev_day_json = prev_day_resp.json()
+    print(prev_day_json)
     prev_day_close = prev_day_json['candles'][-1]['close']
     prev_worth = int(prev_day_close * int(share_count))
     prev_worth_str = "{:,}".format(prev_worth)
@@ -85,8 +103,8 @@ def main():
     amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
 
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    twitter.update_status(status=tweet_text)
-    update_db_date(num_id, str_id, last_use)
+    # twitter.update_status(status=tweet_text)
+    # update_db_date(num_id, str_id, last_use)
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
