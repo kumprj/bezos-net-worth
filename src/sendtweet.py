@@ -41,8 +41,13 @@ twitter = Twython(
     access_token,
     access_token_secret
 )
+<<<<<<< HEAD
 current_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
 yesterday_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
+=======
+todays_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
+prev_day_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
+>>>>>>> @{-1}
 
 def rds_connect():
     return psycopg2.connect(user = database_user,
@@ -80,13 +85,17 @@ def main():
     prev_worth_str = "{:,}".format(prev_worth)
     prev_worth_str = prev_worth_str[0:3]
 
+    # Format net worth with commas. 
     net_change = abs(prev_worth - net_worth)
     net_change_str = "{:,}".format(net_change)
 
+    # Calculate if they are unrealized gains or losses.
     up_down = 'down' if (prev_day_close > closing_price) else 'up'
     gain_loss = 'loss' if (prev_day_close > closing_price) else 'gain'
     recently_used = True
 
+    # Loop through our database options to identify some text for today's tweet. Ensure it hasn't 
+    # been used in the last 3 months.
     while recently_used:
         tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
         today = datetime.datetime.now().date()
@@ -99,9 +108,11 @@ def main():
             recently_used = False
             break
 
+    # Calculate the amount of everyday items, adding commas to nicely format it.
     amount = int(net_change / item_cost)
     amount_str = "{:,}".format(amount) if amount >= 1000 else str(amount)
 
+    # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
     # twitter.update_status(status=tweet_text)
     # update_db_date(num_id, str_id, last_use)
@@ -112,10 +123,21 @@ def main():
     print(share_count)
 
 
+def get_content_count():
+    connection = rds_connect()
+    cursor = connection.cursor()
+    select_query = f'select COUNT(num_id) from public.bezostweets'
+    cursor.execute(select_query)
+    db_results = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return db_results[0]
+
 def select_tweet():
     connection = rds_connect()
     cursor = connection.cursor()
-    id = random.randint(0,143) # Revise to global var
+    count = get_content_count() - 1 # Set upper bound based on db column size.
+    id = random.randint(0, count) # Inclusive
     select_query = f'select tweettext, item_cost, last_use, num_id, str_id from public.bezostweets where num_id = {id}'
     cursor.execute(select_query)
     db_results = cursor.fetchone()
