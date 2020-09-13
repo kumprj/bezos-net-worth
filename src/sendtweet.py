@@ -5,35 +5,36 @@ import random
 import psycopg2
 import datetime
 from dateutil.relativedelta import relativedelta
-from settings import (
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret,
-    td_key,
-    database_user,
-    database_password,
-    database_host,
-    database_port,
-    database_db,
-    share_count,
-    client_id,
-    refresh_token
-)
+# For Local Development
+# from settings import (
+#     consumer_key,
+#     consumer_secret,
+#     access_token,
+#     access_token_secret,
+#     td_key,
+#     database_user,
+#     database_password,
+#     database_host,
+#     database_port,
+#     database_db,
+#     share_count,
+#     client_id,
+#     refresh_token
+# )
 
-# access_token = os.environ['access_token']
-# access_token_secret = os.environ['access_token_secret']
-# consumer_key = os.environ['consumer_key']
-# consumer_secret = os.environ['consumer_secret']
-# database_db = os.environ['database_db']
-# database_host = os.environ['database_host']
-# database_password = os.environ['database_password']
-# database_port = os.environ['database_port']
-# database_user = os.environ['database_user']
-# share_count = os.environ['share_count']
-# td_key = os.environ['td_key']
-# refresh_token = os.environ['refresh_token']
-# client_id = os.environ['client_id']
+access_token = os.environ['access_token']
+access_token_secret = os.environ['access_token_secret']
+consumer_key = os.environ['consumer_key']
+consumer_secret = os.environ['consumer_secret']
+database_db = os.environ['database_db']
+database_host = os.environ['database_host']
+database_password = os.environ['database_password']
+database_port = os.environ['database_port']
+database_user = os.environ['database_user']
+share_count = os.environ['share_count']
+td_key = os.environ['td_key']
+refresh_token = os.environ['refresh_token']
+client_id = os.environ['client_id']
 
 twitter = Twython(
     consumer_key,
@@ -41,13 +42,8 @@ twitter = Twython(
     access_token,
     access_token_secret
 )
-<<<<<<< HEAD
 current_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
 yesterday_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
-=======
-todays_price_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/quotes?apikey={td_key}"
-prev_day_api_url = f"https://api.tdameritrade.com/v1/marketdata/AMZN/pricehistory?apikey={td_key}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false"
->>>>>>> @{-1}
 
 def rds_connect():
     return psycopg2.connect(user = database_user,
@@ -63,12 +59,11 @@ def get_token():
     token = requests.post(token_url, headers=headers, data=data)
     output = token.json()
     return output["access_token"]
-def main():
     
+def main():
     token = get_token()
     headers = {}
     headers["Authorization"] = f"Bearer {token}"
-    print(headers)
     resp = requests.get(current_price_api_url, headers=headers)
     amzn_json = resp.json()
 
@@ -114,8 +109,8 @@ def main():
 
     # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    # twitter.update_status(status=tweet_text)
-    # update_db_date(num_id, str_id, last_use)
+    twitter.update_status(status=tweet_text)
+    update_db_date(num_id, str_id, last_use)
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
