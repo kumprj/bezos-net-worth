@@ -67,14 +67,14 @@ def main():
     resp = requests.get(current_price_api_url, headers=headers)
     amzn_json = resp.json()
 
-    closing_price = amzn_json['AMZN']['closePrice']
+    closing_price = amzn_json['AMZN']['lastPrice']
     net_worth = int(closing_price * int(share_count))
     net_worth_str = "{:,}".format(net_worth)
     net_worth_str = net_worth_str[0:3]
 
     prev_day_resp = requests.get(yesterday_price_api_url, headers=headers)
     prev_day_json = prev_day_resp.json()
-    print(prev_day_json)
+
     prev_day_close = prev_day_json['candles'][-1]['close']
     prev_worth = int(prev_day_close * int(share_count))
     prev_worth_str = "{:,}".format(prev_worth)
