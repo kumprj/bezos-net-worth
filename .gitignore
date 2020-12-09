@@ -1,2 +1,5 @@
 **/src/settings.py
 **/__pycache__
+package/**
+**/package.zip
+**/polygon.py
