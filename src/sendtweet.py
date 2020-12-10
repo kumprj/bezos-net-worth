@@ -47,7 +47,12 @@ def rds_connect():
     
 def get_prices():
     today = datetime.date.today()
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    if datetime.date.today().weekday() == 0:
+        yesterday = today - datetime.timedelta(days=1)
+    else:
+        # If Today is Monday we want Friday
+        yesterday = today - datetime.timedelta(days=3) 
+
     # Today Value    
     today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey=AKWB515TU7I7D6PRGTIT'
     today_response = requests.get(today_url).json()
