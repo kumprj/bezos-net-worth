@@ -154,12 +154,9 @@ def update_db_date(num_id, str_id, last_use):
     cursor.close()
     connection.close()
 
-if __name__ == "__main__":
+# Handler
+def my_handler(event, context):
     main()
 
-# Handler
-# def my_handler(event, context):
-#     main()
-
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

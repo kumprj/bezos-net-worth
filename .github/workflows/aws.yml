@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - run: cp src/sendtweet.py package/sendtweet.py
       - run: cd package/ && zip -r ../package.zip **
-      - uses: yvesgurcan/deploy-lambda-function@master
+      - uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
           package: package.zip
           function-name: bezos-net-worth
