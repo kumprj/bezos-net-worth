@@ -30,6 +30,7 @@ database_password = os.environ['database_password']
 database_port = os.environ['database_port']
 database_user = os.environ['database_user']
 share_count = os.environ['share_count']
+polygon_api_key = os.environ['AKWB515TU7I7D6PRGTIT']
 
 twitter = Twython(
     consumer_key,
@@ -55,13 +56,13 @@ def get_prices():
     print(today)
     print(yesterday)
     # Today Value    
-    # today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey=AKWB515TU7I7D6PRGTIT'
-    today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey=AKWB515TU7I7D6PRGTIT'
+    # today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey={polygon_api_key}'
+    today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey={polygon_api_key}'
     today_response = requests.get(today_url).json()
     print(today_response)
     amzn_close_today = today_response['last']['price']
     # Get Prev Day Close
-    yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey=AKWB515TU7I7D6PRGTIT'
+    yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
     yesterday_resp = requests.get(yesterday_url)
     amzn_yesterday_json = yesterday_resp.json()
     print(amzn_yesterday_json)
