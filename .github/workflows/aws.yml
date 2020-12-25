@@ -9,6 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+      - run: cat src/requirements.txt | xargs -n 1 python3 -m pip install --target package/
       - run: cp src/sendtweet.py package/sendtweet.py
       - run: cd package/ && zip -r ../package.zip **
       - uses: yvesgurcan/deploy-lambda-function@v0.0.5
