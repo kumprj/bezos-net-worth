@@ -112,8 +112,8 @@ def main():
 
     # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    twitter.update_status(status=tweet_text)
-    update_db_date(num_id, str_id, last_use)
+    # twitter.update_status(status=tweet_text)
+    # update_db_date(num_id, str_id, last_use)
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
@@ -159,5 +159,5 @@ def update_db_date(num_id, str_id, last_use):
 def my_handler(event, context):
     main()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
