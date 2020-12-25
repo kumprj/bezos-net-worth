@@ -2,7 +2,7 @@
 name: Deploy Lambda
 on:
   push:
-    branches: [ feature/aws-lambda ]
+    branches: [ master ]
 jobs:
   deploy-lambda:
     runs-on: ubuntu-latest
