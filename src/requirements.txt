@@ -1,3 +1,7 @@
+pandas==1.0.1
+pandocfilters==1.4.2
+pandas-datareader==0.8.1
+numpy==1.18.1
 psycopg2-binary==2.8.4
 python-dateutil==2.8.0
 requests==2.23.0
