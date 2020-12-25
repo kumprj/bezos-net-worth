@@ -1,6 +1,5 @@
 
 name: Deploy Lambda
-
 on:
   push:
     branches: [ feature/aws-lambda ]
