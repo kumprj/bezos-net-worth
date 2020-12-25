@@ -1,40 +1,21 @@
-# This workflow will build and push a new container image to Amazon ECR,
-# and then will deploy a new task definition to Amazon ECS, when a push to master happens
+
+name: Deploy Lambda
 
 on:
   push:
-    branches: [ master ]
-
-name: Deploy to Amazon ECR
-
+    branches: [ feature/aws-lambda ]
 jobs:
-  build-and-push:
+  deploy-lambda:
+    if: github.event.pull_request.merged
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: bezos-tweet
-        IMAGE_TAG: latest
-      run: |
-        # Build a docker container and
-        # push it to ECR
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      - uses: actions/checkout@master
+      - run: cp src/sendtweet.py package/sendtweet.py
+      - run: cd package/ && zip -r ../package.zip **
+      - uses: yvesgurcan/deploy-lambda-function
+        with:
+          package: package.zip
+          function-name: bezos-net-worth
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

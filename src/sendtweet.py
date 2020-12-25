@@ -7,29 +7,29 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 # For Local Development
-from settings import (
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret,
-    database_user,
-    database_password,
-    database_host,
-    database_port,
-    database_db,
-    share_count
-)
+# from settings import (
+#     consumer_key,
+#     consumer_secret,
+#     access_token,
+#     access_token_secret,
+#     database_user,
+#     database_password,
+#     database_host,
+#     database_port,
+#     database_db,
+#     share_count
+# )
 
-# access_token = os.environ['access_token']
-# access_token_secret = os.environ['access_token_secret']
-# consumer_key = os.environ['consumer_key']
-# consumer_secret = os.environ['consumer_secret']
-# database_db = os.environ['database_db']
-# database_host = os.environ['database_host']
-# database_password = os.environ['database_password']
-# database_port = os.environ['database_port']
-# database_user = os.environ['database_user']
-# share_count = os.environ['share_count']
+access_token = os.environ['access_token']
+access_token_secret = os.environ['access_token_secret']
+consumer_key = os.environ['consumer_key']
+consumer_secret = os.environ['consumer_secret']
+database_db = os.environ['database_db']
+database_host = os.environ['database_host']
+database_password = os.environ['database_password']
+database_port = os.environ['database_port']
+database_user = os.environ['database_user']
+share_count = os.environ['share_count']
 
 twitter = Twython(
     consumer_key,
@@ -47,22 +47,25 @@ def rds_connect():
     
 def get_prices():
     today = datetime.date.today()
-    if datetime.date.today().weekday() == 0:
+    if datetime.date.today().weekday() != 0:
         yesterday = today - datetime.timedelta(days=1)
     else:
         # If Today is Monday we want Friday
         yesterday = today - datetime.timedelta(days=3) 
-
+    print(today)
+    print(yesterday)
     # Today Value    
-    today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey=AKWB515TU7I7D6PRGTIT'
+    # today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey=AKWB515TU7I7D6PRGTIT'
+    today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey=AKWB515TU7I7D6PRGTIT'
     today_response = requests.get(today_url).json()
-    amzn_close_today = today_response['results'][0]['c']
+    print(today_response)
+    amzn_close_today = today_response['last']['price']
     # Get Prev Day Close
     yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey=AKWB515TU7I7D6PRGTIT'
     yesterday_resp = requests.get(yesterday_url)
     amzn_yesterday_json = yesterday_resp.json()
+    print(amzn_yesterday_json)
     amzn_yesterday_close = amzn_yesterday_json['close']
-
 
     return amzn_close_today, amzn_yesterday_close
     
