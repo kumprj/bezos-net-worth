@@ -30,7 +30,7 @@ database_password = os.environ['database_password']
 database_port = os.environ['database_port']
 database_user = os.environ['database_user']
 share_count = os.environ['share_count']
-polygon_api_key = os.environ['AKWB515TU7I7D6PRGTIT']
+polygon_api_key = os.environ['polygon_api_key']
 
 twitter = Twython(
     consumer_key,
