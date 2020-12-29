@@ -7,31 +7,31 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 # For Local Development
-# from settings import (
-#     consumer_key,
-#     consumer_secret,
-#     access_token,
-#     access_token_secret,
-#     database_user,
-#     database_password,
-#     database_host,
-#     database_port,
-#     database_db,
-#     polygon_api_key,
-#     share_count
-# )
+from settings import (
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_token_secret,
+    database_user,
+    database_password,
+    database_host,
+    database_port,
+    database_db,
+    polygon_api_key,
+    share_count
+)
 
-access_token = os.environ['access_token']
-access_token_secret = os.environ['access_token_secret']
-consumer_key = os.environ['consumer_key']
-consumer_secret = os.environ['consumer_secret']
-database_db = os.environ['database_db']
-database_host = os.environ['database_host']
-database_password = os.environ['database_password']
-database_port = os.environ['database_port']
-database_user = os.environ['database_user']
-share_count = os.environ['share_count']
-polygon_api_key = os.environ['polygon_api_key']
+# access_token = os.environ['access_token']
+# access_token_secret = os.environ['access_token_secret']
+# consumer_key = os.environ['consumer_key']
+# consumer_secret = os.environ['consumer_secret']
+# database_db = os.environ['database_db']
+# database_host = os.environ['database_host']
+# database_password = os.environ['database_password']
+# database_port = os.environ['database_port']
+# database_user = os.environ['database_user']
+# share_count = os.environ['share_count']
+# polygon_api_key = os.environ['polygon_api_key']
 
 twitter = Twython(
     consumer_key,
@@ -47,30 +47,62 @@ def rds_connect():
                             port = database_port,
                             database = database_db)
     
+# Aggregate bars strategy, if desired:
+# today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey={polygon_api_key}'
 def get_prices():
+
     today = datetime.date.today()
-    if datetime.date.today().weekday() != 0:
+    if today.weekday() != 0:
         yesterday = today - datetime.timedelta(days=1)
     else:
         # If Today is Monday we want Friday
-        yesterday = today - datetime.timedelta(days=3) 
+        yesterday = today - datetime.timedelta(days=3)
+    
     print(today)
     print(yesterday)
+
     # Today Value    
-    # today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey={polygon_api_key}'
     today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey={polygon_api_key}'
     today_response = requests.get(today_url).json()
+
+    yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
+    amzn_yesterday_json = requests.get(yesterday_url).json()
+    
+    # Verify our data returned. For example, if we hit a holiday as the previous day, we'd receive invalid json.
+    json_valid = verify_json(amzn_yesterday_json)
+    if json_valid == True:
+        amzn_yesterday_json = amzn_yesterday_json
+    elif json_valid['status'] == 'OK':
+        amzn_yesterday_json = json_valid
+    elif json_valid == False:
+        raise ValueError('Invalid JSON returned')
+
+    # After validating our data
     print(today_response)
     amzn_close_today = today_response['last']['price']
     # Get Prev Day Close
-    yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
-    yesterday_resp = requests.get(yesterday_url)
-    amzn_yesterday_json = yesterday_resp.json()
+    # yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
+    # yesterday_resp = requests.get(yesterday_url)
     print(amzn_yesterday_json)
     amzn_yesterday_close = amzn_yesterday_json['close']
 
     return amzn_close_today, amzn_yesterday_close
-    
+
+def verify_json(yesterday):
+    if yesterday['status'] == 'OK':
+        return True
+    i = 4
+    while i < 10: # arbitrary 10, we just need a terminator
+        current = datetime.date.today() - datetime.timedelta(days=i) 
+        url = f'https://api.polygon.io/v1/open-close/AMZN/{current}?apiKey={polygon_api_key}'
+        print(url)
+        resp = requests.get(url).json()
+        # print(resp)
+        if resp['status'] == 'OK':
+            i = 10
+            return resp
+        i += 1
+
 def main():
     closing_price, prev_day_close = get_prices()
 
@@ -113,8 +145,8 @@ def main():
 
     # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    twitter.update_status(status=tweet_text)
-    update_db_date(num_id, str_id, last_use)
+    # twitter.update_status(status=tweet_text)
+    # update_db_date(num_id, str_id, last_use)
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
@@ -161,5 +193,5 @@ def my_handler(event, context):
     main()
 
 # For Local dev
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
