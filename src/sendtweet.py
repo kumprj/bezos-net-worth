@@ -57,14 +57,12 @@ def get_prices():
     else:
         # If Today is Monday we want Friday
         yesterday = today - datetime.timedelta(days=3)
-    
-    print(today)
-    print(yesterday)
 
     # Today Value    
     today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey={polygon_api_key}'
     today_response = requests.get(today_url).json()
 
+    # Yesterday Value
     yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
     amzn_yesterday_json = requests.get(yesterday_url).json()
     
@@ -72,37 +70,45 @@ def get_prices():
     json_valid = verify_json(amzn_yesterday_json)
     if json_valid == True:
         amzn_yesterday_json = amzn_yesterday_json
-    elif json_valid['status'] == 'OK':
-        amzn_yesterday_json = json_valid
     elif json_valid == False:
         raise ValueError('Invalid JSON returned')
+    elif json_valid['status'] == 'OK':
+        amzn_yesterday_json = json_valid
 
-    # After validating our data
-    print(today_response)
+    # After validating our data, grab the prices to return.
     amzn_close_today = today_response['last']['price']
-    # Get Prev Day Close
-    # yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
-    # yesterday_resp = requests.get(yesterday_url)
-    print(amzn_yesterday_json)
     amzn_yesterday_close = amzn_yesterday_json['close']
 
+    # Print our dates and closes for logging purposes
+    print(today)
+    print(yesterday)
+    print(today_response)
+    print(amzn_yesterday_json)
     return amzn_close_today, amzn_yesterday_close
 
+# Today we are checking for last trade price. 
+# For yesterday, we're checking the previous trading day. There are holidays that cause issues with this,
+# so this function handles that edge case.
 def verify_json(yesterday):
-    return False
     if yesterday['status'] == 'OK':
         return True
+
+    # Start at 4, because the above True would hit if '3' was valid json.
     i = 4
     while i < 10: # arbitrary 10, we just need a terminator
         current = datetime.date.today() - datetime.timedelta(days=i) 
         url = f'https://api.polygon.io/v1/open-close/AMZN/{current}?apiKey={polygon_api_key}'
-        print(url)
         resp = requests.get(url).json()
-        # print(resp)
+
         if resp['status'] == 'OK':
             i = 10
             return resp
+
         i += 1
+    # If all of the above fails and for some reason 
+    # we can't find data in the last 10 days, return False.
+    return False
+
 
 def main():
     closing_price, prev_day_close = get_prices()
@@ -148,6 +154,7 @@ def main():
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
     # twitter.update_status(status=tweet_text)
     # update_db_date(num_id, str_id, last_use)
+    
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
