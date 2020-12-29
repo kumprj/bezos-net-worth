@@ -7,31 +7,31 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 # For Local Development
-from settings import (
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret,
-    database_user,
-    database_password,
-    database_host,
-    database_port,
-    database_db,
-    polygon_api_key,
-    share_count
-)
+# from settings import (
+#     consumer_key,
+#     consumer_secret,
+#     access_token,
+#     access_token_secret,
+#     database_user,
+#     database_password,
+#     database_host,
+#     database_port,
+#     database_db,
+#     polygon_api_key,
+#     share_count
+# )
 
-# access_token = os.environ['access_token']
-# access_token_secret = os.environ['access_token_secret']
-# consumer_key = os.environ['consumer_key']
-# consumer_secret = os.environ['consumer_secret']
-# database_db = os.environ['database_db']
-# database_host = os.environ['database_host']
-# database_password = os.environ['database_password']
-# database_port = os.environ['database_port']
-# database_user = os.environ['database_user']
-# share_count = os.environ['share_count']
-# polygon_api_key = os.environ['polygon_api_key']
+access_token = os.environ['access_token']
+access_token_secret = os.environ['access_token_secret']
+consumer_key = os.environ['consumer_key']
+consumer_secret = os.environ['consumer_secret']
+database_db = os.environ['database_db']
+database_host = os.environ['database_host']
+database_password = os.environ['database_password']
+database_port = os.environ['database_port']
+database_user = os.environ['database_user']
+share_count = os.environ['share_count']
+polygon_api_key = os.environ['polygon_api_key']
 
 twitter = Twython(
     consumer_key,
@@ -134,7 +134,7 @@ def main():
     # Loop through our database options to identify some text for today's tweet. Ensure it hasn't 
     # been used in the last 3 months.
     while recently_used:
-        tweet_text_from_db, item_cost, last_use = select_tweet()
+        tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
         today = datetime.datetime.now().date()
         three_months = datetime.timedelta(3*365/12)
         three_months_ago = today - three_months
@@ -151,8 +151,8 @@ def main():
 
     # Send the tweet.
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
-    # twitter.update_status(status=tweet_text)
-    # update_db_date(num_id, str_id, last_use)
+    twitter.update_status(status=tweet_text)
+    update_db_date(num_id, str_id, last_use)
 
     # Print statements for logging purposes.
     print(tweet_text)
@@ -181,7 +181,7 @@ def select_tweet():
     db_results = cursor.fetchone()
     cursor.close()
     connection.close()
-    return db_results[0], db_results[1], db_results[2]
+    return db_results[0], db_results[1], db_results[2], db_results[3], db_results[4]
 
 
 def update_db_date(num_id, str_id, last_use):
