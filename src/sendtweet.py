@@ -89,6 +89,7 @@ def get_prices():
     return amzn_close_today, amzn_yesterday_close
 
 def verify_json(yesterday):
+    return False
     if yesterday['status'] == 'OK':
         return True
     i = 4
