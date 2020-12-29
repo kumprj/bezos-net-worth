@@ -50,7 +50,6 @@ def rds_connect():
 # Aggregate bars strategy, if desired:
 # today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey={polygon_api_key}'
 def get_prices():
-
     today = datetime.date.today()
     if today.weekday() != 0:
         yesterday = today - datetime.timedelta(days=1)
@@ -135,7 +134,7 @@ def main():
     # Loop through our database options to identify some text for today's tweet. Ensure it hasn't 
     # been used in the last 3 months.
     while recently_used:
-        tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
+        tweet_text_from_db, item_cost, last_use = select_tweet()
         today = datetime.datetime.now().date()
         three_months = datetime.timedelta(3*365/12)
         three_months_ago = today - three_months
@@ -154,7 +153,7 @@ def main():
     tweet_text = f"Today Jeff's $AMZN shares are worth ${net_worth_str} billion, {up_down} from ${prev_worth_str} billion yesterday. This is a {gain_loss} of ${net_change_str} and the equivalent of {amount_str} {tweet_text_from_db}."
     # twitter.update_status(status=tweet_text)
     # update_db_date(num_id, str_id, last_use)
-    
+
     # Print statements for logging purposes.
     print(tweet_text)
     print(closing_price)
@@ -182,7 +181,7 @@ def select_tweet():
     db_results = cursor.fetchone()
     cursor.close()
     connection.close()
-    return db_results[0], db_results[1], db_results[2], db_results[3], db_results[4]
+    return db_results[0], db_results[1], db_results[2]
 
 
 def update_db_date(num_id, str_id, last_use):
