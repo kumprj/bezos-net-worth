@@ -102,7 +102,7 @@ def verify_json(yesterday):
         if resp['status'] == 'OK':
             i = 10
             return resp
-
+        # else increment
         i += 1
     # If all of the above fails and for some reason 
     # we can't find data in the last 10 days, return False.
