@@ -1,11 +1,11 @@
 import os
 from twython import Twython
-import requests
 import random
 import psycopg2
 import datetime
+import pandas as pd
+from datetime import datetime, timedelta
 
-from dateutil.relativedelta import relativedelta
 # For Local Development
 # from settings import (
 #     consumer_key,
@@ -17,8 +17,8 @@ from dateutil.relativedelta import relativedelta
 #     database_host,
 #     database_port,
 #     database_db,
-#     polygon_api_key,
-#     share_count
+#     share_count,
+#     apiKey
 # )
 
 access_token = os.environ['access_token']
@@ -31,7 +31,7 @@ database_password = os.environ['database_password']
 database_port = os.environ['database_port']
 database_user = os.environ['database_user']
 share_count = os.environ['share_count']
-polygon_api_key = os.environ['polygon_api_key']
+apiKey = os.environ['apiKey']
 
 twitter = Twython(
     consumer_key,
@@ -47,67 +47,21 @@ def rds_connect():
                             port = database_port,
                             database = database_db)
     
-# Aggregate bars strategy, if desired:
-# today_url = f'https://api.polygon.io/v2/aggs/ticker/amzn/range/1/day/{today}/{today}?apiKey={polygon_api_key}'
 def get_prices():
-    today = datetime.date.today()
-    if today.weekday() != 0:
-        yesterday = today - datetime.timedelta(days=1)
-    else:
-        # If Today is Monday we want Friday
-        yesterday = today - datetime.timedelta(days=3)
 
-    # Today Value    
-    today_url = f'https://api.polygon.io/v1/last/stocks/AMZN?apiKey={polygon_api_key}'
-    today_response = requests.get(today_url).json()
+    eDate = int((datetime.today() - datetime(1970,1,1)).total_seconds())
+    sDate = int(((datetime.today() - timedelta(days=20)) - datetime(1970,1,1)).total_seconds())
+    symbol = 'AMZN'
+    url = 'https://finnhub.io/api/v1/stock/candle?symbol=' + symbol + '&resolution=D&from='+ str(sDate) +'&to=' + str(eDate) + '&token=' + apiKey
+    df = pd.read_json(url)
 
-    # Yesterday Value
-    yesterday_url = f'https://api.polygon.io/v1/open-close/AMZN/{yesterday}?apiKey={polygon_api_key}'
-    amzn_yesterday_json = requests.get(yesterday_url).json()
+    # print(df)
+    # print(df.iloc[-2]['c']) # Yesterday
+    # print(df.iloc[-1]['c']) # Today
+    yesterday = df.iloc[-2]['c']
+    today = df.iloc[-1]['c']
     
-    # Verify our data returned. For example, if we hit a holiday as the previous day, we'd receive invalid json.
-    json_valid = verify_json(amzn_yesterday_json)
-    if json_valid == True:
-        amzn_yesterday_json = amzn_yesterday_json
-    elif json_valid == False:
-        raise ValueError('Invalid JSON returned')
-    elif json_valid['status'] == 'OK':
-        amzn_yesterday_json = json_valid
-
-    # After validating our data, grab the prices to return.
-    amzn_close_today = today_response['last']['price']
-    amzn_yesterday_close = amzn_yesterday_json['close']
-
-    # Print our dates and closes for logging purposes
-    print(today)
-    print(yesterday)
-    print(today_response)
-    print(amzn_yesterday_json)
-    return amzn_close_today, amzn_yesterday_close
-
-# Today we are checking for last trade price. 
-# For yesterday, we're checking the previous trading day. There are holidays that cause issues with this,
-# so this function handles that edge case.
-def verify_json(yesterday):
-    if yesterday['status'] == 'OK':
-        return True
-
-    # Start at 4, because the above True would hit if '3' was valid json.
-    i = 4
-    while i < 10: # arbitrary 10, we just need a terminator
-        current = datetime.date.today() - datetime.timedelta(days=i) 
-        url = f'https://api.polygon.io/v1/open-close/AMZN/{current}?apiKey={polygon_api_key}'
-        resp = requests.get(url).json()
-
-        if resp['status'] == 'OK':
-            i = 10
-            return resp
-        # else increment
-        i += 1
-    # If all of the above fails and for some reason 
-    # we can't find data in the last 10 days, return False.
-    return False
-
+    return today, yesterday
 
 def main():
     closing_price, prev_day_close = get_prices()
@@ -135,8 +89,8 @@ def main():
     # been used in the last 3 months.
     while recently_used:
         tweet_text_from_db, item_cost, last_use, num_id, str_id = select_tweet()
-        today = datetime.datetime.now().date()
-        three_months = datetime.timedelta(3*365/12)
+        today = datetime.now().date()
+        three_months = timedelta(3*365/12)
         three_months_ago = today - three_months
 
         if three_months_ago < last_use:
@@ -156,8 +110,8 @@ def main():
 
     # Print statements for logging purposes.
     print(tweet_text)
-    print(closing_price)
-    print(prev_day_close)
+    print(f'Todays closing price is {closing_price}')
+    print(f'Yesterdays closing price is {prev_day_close}')
     print(share_count)
 
 
