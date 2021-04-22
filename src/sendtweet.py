@@ -63,6 +63,7 @@ def get_prices():
     
     return today, yesterday
 
+
 def main():
     closing_price, prev_day_close = get_prices()
 
